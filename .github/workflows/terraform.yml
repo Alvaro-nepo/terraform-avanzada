@@ -1,31 +1,45 @@
-name: Terraform Validation and Deploy
+name: Terraform CI
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - main  # Se ejecuta cada vez que hay un push a la rama principal
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest
-    
+    runs-on: ubuntu-latest  # Usa la máquina virtual de Ubuntu de GitHub
+
+    services:
+      localstack:  # Aquí le decimos a GitHub que ejecute LocalStack dentro de un contenedor Docker
+        image: localstack/localstack:latest  # La imagen de Docker de LocalStack
+        ports:
+          - 4566:4566  # El puerto donde LocalStack escuchará
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      
+      - name: Check out code
+        uses: actions/checkout@v2  # Clona tu código del repositorio
+
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: '1.0.0'
+        uses: hashicorp/setup-terraform@v1  # Instala Terraform en el entorno de GitHub Actions
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y unzip
+          curl -o terraform.zip https://releases.hashicorp.com/terraform/1.3.0/terraform_1.3.0_linux_amd64.zip
+          unzip terraform.zip
+          sudo mv terraform /usr/local/bin/
 
       - name: Terraform init
-        run: terraform init
+        run: terraform init  # Inicializa Terraform
 
       - name: Terraform validate
-        run: terraform validate
+        run: terraform validate  # Valida tu configuración de Terraform
+
+      - name: Terraform plan
+        run: terraform plan  # Muestra el plan de Terraform
 
       - name: Terraform apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve  # Aplica los cambios automáticamente
+        env:
+          AWS_ACCESS_KEY_ID: "test"  # Credenciales falsas para LocalStack
+          AWS_SECRET_ACCESS_KEY: "test"
