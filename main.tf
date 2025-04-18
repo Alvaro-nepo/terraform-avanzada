@@ -1,13 +1,21 @@
-# main.tf
-
 provider "aws" {
-  region                      = "us-east-1"
   access_key                  = "test"
   secret_key                  = "test"
-  endpoint                    = "http://localhost:4566"
-  s3_force_path_style         = true
+  region                      = "us-east-1"
+
+  # Configuración específica para LocalStack
+  s3_use_path_style           = true
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_requesting_account_id  = true
+
+  # Punto de conexión a LocalStack
+  endpoints {
+    s3 = "http://localhost:4566"
+  }
 }
 
-resource "aws_s3_bucket" "my_bucket" {
-  bucket = "my-localstack-bucket"
+# Definición del recurso S3
+resource "aws_s3_bucket" "mi_bucket" {
+  bucket = "mi-primer-bucket"
 }
